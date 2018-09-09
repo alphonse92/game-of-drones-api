@@ -6,5 +6,4 @@ module.exports = {
 	response:require("./response"),
 	mongoose:require("./mongoose"),
 	request:require("./request"),
-	moodle_client:require("./moodle_client")
 }

@@ -7,10 +7,8 @@ const cluster = require('cluster');
 const Config = global.Config;
 const Util = require(Config.paths.utils)
 const app = express();
-const PolicyAccessManagerMiddleware = require(Config.paths.services + "/policy/policy.access-manager.service").getMiddleware({service:Config.service.name})
-const GetUserMiddleware = require(Config.paths.services + "/user/user.service").getGetUserMiddleware();
-const LoadUserPolicies = require(Config.paths.services + "/policy/policy.service").getLoadUserPoliciesMiddleware();
-module.exports = function(config){
+
+module.exports = function (config) {
 	return addPreRoutesMiddlewares(app)
 		.then(addRoutes)
 		.then(AddPostRoutesMiddleware)
@@ -20,35 +18,32 @@ module.exports = function(config){
 		})
 };
 
-function addPreRoutesMiddlewares(app){
+function addPreRoutesMiddlewares(app) {
 	app.use(logger('dev'))
 		.use(helmet())
 		.use(bodyParser.json())
-		.use(bodyParser.urlencoded({extended:false}))
+		.use(bodyParser.urlencoded({ extended: false }))
 		.use(express.static(Config.paths.public))
-		.use(cors({credentials:true, origin:true}))
-		.use(GetUserMiddleware)
-		.use(LoadUserPolicies)
-		.use(PolicyAccessManagerMiddleware)
+		.use(cors({ credentials: true, origin: true }))
 	return Promise.resolve(app);
 
 }
-function addRoutes(app){
+function addRoutes(app) {
 	return Util.files.readDir(Config.paths.routes)
 		.then(routesList => routesList.map(routePath => require(Config.paths.routes + "/" + routePath)))
 		.then(Routers => Routers.forEach(Router => app.use(Router.Base, Router.Router)))
 		.then(() => app);
 }
 
-function AddPostRoutesMiddleware(app){
+function AddPostRoutesMiddleware(app) {
 	return Promise.resolve(app)
 }
 
-function init(app){
+function init(app) {
 	return new Promise((resolve, reject) => {
 		app.disable('x-powered-by');
 		app.disable('etag');
-		app.listen(Config.web.port, function(){
+		app.listen(Config.web.port, function () {
 			Util.log('Server is running on port: ', Config.web.port, "  and worker: ", (cluster.worker ? cluster.worker.id : 'n/a'));
 			resolve(app);
 		});
