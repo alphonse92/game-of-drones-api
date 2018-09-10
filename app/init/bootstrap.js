@@ -19,11 +19,31 @@ function addAppListeners() {
 	Object.keys(listeners, listener => process.on('listener', listeners[listener]))
 }
 
+function prepareTestEnv() {
+
+	if (Config.env === "test") {
+		Util.log("TEST ENVIRONMENT FOUND")
+		let promise = require(Config.paths.db + '/mongo-client')
+			.get()
+			.then(client => {
+				return client.db().dropDatabase()
+			})
+			.then(result => {
+				Util.log(" ---- Database Droped")
+			})
+			.catch(e => {
+				Util.log(e)
+			})
+		return promise;
+	}
+	return Promise.resolve()
+}
+
 
 
 module.exports = bootstrap;
 function bootstrap() {
 	Util.log("Bootstraping");
 	addAppListeners()
-	return Promise.resolve()
+	return prepareTestEnv()
 }
